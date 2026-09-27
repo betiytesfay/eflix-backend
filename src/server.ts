@@ -40,6 +40,11 @@ if (EnvVars.NodeEnv === NodeEnvs.PRODUCTION) {
   app.use(helmet());
 }
 
+// Root status check
+app.get('/', (_: Request, res: Response) => {
+  res.redirect('/api');
+});
+
 // Add APIs, must be after middleware
 app.use(Paths._, BaseRouter);
 
