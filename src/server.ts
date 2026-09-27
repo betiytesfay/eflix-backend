@@ -1,8 +1,8 @@
 import express, { NextFunction, Request, Response } from 'express';
 import helmet from 'helmet';
+import cors from 'cors';
 import logger from 'jet-logger';
 import morgan from 'morgan';
-import path from 'path';
 
 import Paths from '@src/common/constants/Paths';
 import { RouteError } from '@src/common/utils/route-errors';
@@ -17,6 +17,14 @@ import EnvVars, { NodeEnvs } from './common/constants/env';
 const app = express();
 
 // **** Middleware **** //
+
+// Enable CORS for frontend requests
+app.use(
+  cors({
+    origin: process.env.CORS_ORIGIN || '*',
+    credentials: true,
+  })
+);
 
 // Basic middleware
 app.use(express.json());
