@@ -1,29 +1,22 @@
 {
   "compilerOptions": {
-    "target": "ES2020",
     "module": "commonjs",
-    "lib": ["ES2020"],
-    "strict": true,
-    "baseUrl": "./",
-    "esModuleInterop": true,
+    "moduleResolution": "node",
+    "declaration": true,
+    "removeComments": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
+    "target": "ES2021",
+    "sourceMap": true,
+    "outDir": "./dist",
+    "incremental": true,
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "paths": {
-      "@src/*": ["src/*"]
-    },
-    "useUnknownInCatchVariables": false,
-    "types": ["vitest/globals"]
-  },
-  "ts-node": {
-    "swc": true,
-    "require": ["tsconfig-paths/register", "dotenv/config"],
-  },
-  "include": [
-    "src/**/*.ts",
-    "tests/**/*.ts",
-    "scripts",
-    "eslint.config.ts",
-    "vitest.config.mts"
-  ],
-  "exclude": ["src/public/*"]
+    "strictNullChecks": true,
+    "strict": false,
+    "strictPropertyInitialization": false,
+    "esModuleInterop": true,
+    "ignoreDeprecations": "5.0"
+  }
 }
+
