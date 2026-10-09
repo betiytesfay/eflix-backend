@@ -1,39 +1,111 @@
-## About
+# eflix-backend
 
-This project was created with [express-generator-typescript](https://github.com/seanpmaxwell/express-generator-typescript).
+A high-performance, modular backend REST API for **eflix**, built with **NestJS**, **TypeScript**, **MongoDB (Mongoose)**, and **Passport JWT**.
 
-## Available Scripts
+---
 
-### `npm run clean-install`
+## 🏗️ Architecture
 
-Remove the existing `node_modules/` folder, `package-lock.json`, and reinstall all library modules.
+The backend follows NestJS modular architecture and SOLID design principles:
 
-### `npm run dev` 
+- **AppModule**: The root application module orchestrating global configuration and database connections.
+- **AuthModule**: Authentication sub-system managing user registration, credentials validation, and JWT issuing.
+- **DTO Validation**: Class-validator decorators integrated with global `ValidationPipe` for automatic payload sanitation and validation.
+- **Guards & Strategies**: Passport JWT authentication strategy paired with `JwtAuthGuard` for protecting endpoints.
+- **Schemas**: Strongly-typed Mongoose data models with lifecycle hooks and password encryption.
 
-Run the server in development with hot reloading and browser refresh (see `package.json` for all `npm run dev` variations)<br/>
+---
 
-**IMPORTANT** development mode uses `swc` for performance reasons which DOES NOT check for typescript errors. Run `npm run type-check` to check for type errors. NOTE: you should use your IDE to prevent most type errors.
+## 🛠️ Tech Stack
 
-### `npm test`
+- **Runtime**: Node.js >= 20
+- **Framework**: [NestJS](https://nestjs.com/)
+- **Database**: MongoDB with [Mongoose](https://mongoosejs.com/)
+- **Authentication**: Passport.js + JWT (`@nestjs/passport`, `@nestjs/jwt`, `passport-jwt`, `bcryptjs`)
+- **Validation**: `class-validator`, `class-transformer`
+- **Testing**: Vitest
 
-Run unit-tests with <a href="https://vitest.dev/guide/">vitest</a>.
+---
 
-### `npm run lint`
+## 🚀 Getting Started
 
-Check for linting errors.
+### 1. Environment Variables
 
-### `npm run build`
+Create a `.env` file in the project root:
 
-Build the project for production.
+```env
+PORT=3000
+MONGO_URI=mongodb://localhost:27017/eflix
+JWT_SECRET=your_secure_jwt_secret_key_here
+CORS_ORIGIN=*
+```
 
-### `npm start`
+### 2. Install Dependencies
 
-Run the production build (Must be built first).
+```bash
+npm install
+```
 
-### `npm run type-check`
+### 3. Run the Application
 
-Check for typescript errors.
+```bash
+# Development mode with hot-reload
+npm run start:dev
 
-## Additional Notes
+# Production build
+npm run build
 
-- If `npm run dev` gives you issues with bcrypt on MacOS you may need to run: `npm rebuild bcrypt --build-from-source`.
+# Run production build
+npm run start:prod
+```
+
+---
+
+## 📡 API Endpoints
+
+All endpoints are prefixed with `/api`.
+
+### Authentication (`/api/auth`)
+
+| Method | Endpoint | Description | Protected |
+| :--- | :--- | :--- | :--- |
+| `POST` | `/api/auth/register` | Register a new user | ❌ No |
+| `POST` | `/api/auth/login` | Authenticate user & get JWT token | ❌ No |
+| `GET` | `/api/auth/me` | Fetch authenticated user profile | 🔒 Yes (Bearer Token) |
+
+#### Register Payload (`POST /api/auth/register`)
+```json
+{
+  "phoneNumber": "+251911223344",
+  "password": "securepassword",
+  "username": "johndoe",
+  "email": "user@example.com",
+  "telegramAccount": "@johndoe"
+}
+```
+
+#### Login Payload (`POST /api/auth/login`)
+```json
+{
+  "phoneNumber": "+251911223344",
+  "password": "securepassword"
+}
+```
+
+---
+
+## 🧪 Testing
+
+```bash
+# Run unit & integration tests
+npm run test
+
+# Run e2e tests
+npm run test:e2e
+```
+
+---
+
+## 📄 License
+
+MIT
