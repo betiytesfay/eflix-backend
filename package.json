@@ -1,10 +1,10 @@
 {
   "name": "eflix-backend",
   "version": "0.0.1",
-  "description": "",
-  "author": "",
+  "description": "NestJS backend API for eflix movie platform",
+  "author": "Bethlehem Tesfay",
   "private": true,
-  "license": "UNLICENSED",
+  "license": "MIT",
   "type": "module",
   "scripts": {
     "build": "nest build",
