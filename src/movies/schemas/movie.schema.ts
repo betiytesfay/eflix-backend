@@ -9,7 +9,7 @@ export class Movie extends Document{
     description: string;
     @Prop({required: true})
     releaseYear: number;
-    @Prop({ required:true, trim: true})
+    @Prop({ trim: true})
     genre: string;
     @Prop({required:true})
     duration:number;

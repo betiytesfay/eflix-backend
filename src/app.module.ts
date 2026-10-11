@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AuthModule } from './auth/auth.module';
-
+import {MoviesModule} from './movies/movie.module';
 // 🧠 WHAT IS AppModule?
 // This is the ROOT module — the top of the module tree.
 // NestJS starts here and discovers everything else from the imports list.
@@ -47,6 +47,7 @@ import { AuthModule } from './auth/auth.module';
     // Import the auth feature. NestJS registers its controller, service, and routes.
     // Compare to Express: app.use('/api', apiRouter) where apiRouter had authRouter
     AuthModule,
+    MoviesModule,
   ],
 })
 export class AppModule {}
