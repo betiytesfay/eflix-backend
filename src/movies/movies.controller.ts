@@ -1,24 +1,27 @@
-import { Body, Controller,Delete, Get, Param, Post, Patch, UseGuards} from '@nestjs/common';
-import {MoviesService} from './movies.service';
-import {CreateMovieDto} from './dto/create-movie.dto';
-import {UpdateMovieDto} from './dto/update-movie.dto';
-import {JwtAuthGuard} from '../auth/guards/jwt-auth.guard';
-import {RoleGuard} from '../auth/guards/role.guard';
-import {Roles} from '../auth/decorators/role.decorator';
-import {UserRole} from '../users/schemas/user.schema';
+import { Body, Controller, Delete, Get, Param, Post, Patch, Query, UseGuards } from '@nestjs/common';
+import { MoviesService } from './movies.service';
+import { CreateMovieDto } from './dto/create-movie.dto';
+import { UpdateMovieDto } from './dto/update-movie.dto';
+import { PaginationQueryDto } from './dto/pagination-query.dto';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RoleGuard } from '../auth/guards/role.guard';
+import { Roles } from '../auth/decorators/role.decorator';
+import { UserRole } from '../users/schemas/user.schema';
 
 @Controller('movies')
-export class MovieController{
+export class MovieController {
     constructor(private readonly moviesService: MoviesService) {}
+
     @UseGuards(JwtAuthGuard, RoleGuard)
     @Roles(UserRole.Admin)
     @Post()
-    create(@Body() createMovieDto: CreateMovieDto){
+    create(@Body() createMovieDto: CreateMovieDto) {
         return this.moviesService.create(createMovieDto);
     }
+
     @Get()
-    findAll(){
-        return this.moviesService.findAll();
+    findAll(@Query() query: PaginationQueryDto) {
+        return this.moviesService.findAll(query);
     }
     @Get(':id')
     findOne(@Param('id') id: string){

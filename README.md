@@ -92,6 +92,27 @@ All endpoints are prefixed with `/api`.
 }
 ```
 
+### Movies (`/api/movies`)
+
+| Method | Endpoint | Description | Protected |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/api/movies` | Get paginated list of movies with search and filters | 🌐 Public |
+| `GET` | `/api/movies/:id` | Get single movie by ID | 🌐 Public |
+| `POST` | `/api/movies` | Create a new movie | 🔒 Admin only (`Bearer <token>`) |
+| `PATCH` | `/api/movies/:id` | Update an existing movie | 🔒 Admin only (`Bearer <token>`) |
+| `DELETE` | `/api/movies/:id` | Delete a movie | 🔒 Admin only (`Bearer <token>`) |
+
+#### Pagination & Filter Query Parameters (`GET /api/movies`)
+* `page`: Page number (default: `1`, min: `1`)
+* `limit`: Items per page (default: `10`, min: `1`, max: `100`)
+* `genre`: Filter by genre name (case-insensitive substring match)
+* `search`: Case-insensitive search on movie `title` and `description`
+
+Example:
+```http
+GET /api/movies?page=1&limit=10&genre=Action&search=Inception
+```
+
 ---
 
 ## 🧪 Testing
