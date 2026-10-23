@@ -5,7 +5,6 @@
   "author": "Bethlehem Tesfay",
   "private": true,
   "license": "MIT",
-  "type": "module",
   "scripts": {
     "build": "nest build",
     "deploy": "nest deploy",
