@@ -5,7 +5,7 @@ import {Movie} from './schemas/movie.schema';
 import { CreateMovieDto } from './dto/create-movie.dto';
 import { UpdateMovieDto } from './dto/update-movie.dto';
 import { PaginationQueryDto } from './dto/pagination-query.dto';
-import { PaginatedResponse } from '../common/interfaces/paginated-response.interface';
+import { PaginatedResponse } from '@app/common';
 
 @Injectable()
 export class MoviesService {

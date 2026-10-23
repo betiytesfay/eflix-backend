@@ -3,10 +3,7 @@ import { MoviesService } from './movies.service';
 import { CreateMovieDto } from './dto/create-movie.dto';
 import { UpdateMovieDto } from './dto/update-movie.dto';
 import { PaginationQueryDto } from './dto/pagination-query.dto';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { RoleGuard } from '../auth/guards/role.guard';
-import { Roles } from '../auth/decorators/role.decorator';
-import { UserRole } from '../users/schemas/user.schema';
+import { JwtAuthGuard, RoleGuard, Roles, UserRole } from '@app/common';
 
 @Controller('movies')
 export class MovieController {
