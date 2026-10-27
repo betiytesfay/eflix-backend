@@ -1,0 +1,18 @@
+syntax = "proto3";
+package subscription;
+
+service SubscriptionService {
+    rpc CheckAccess(CheckAccessRequest) returns (CheckAccessResponse);
+}
+message CheckAccessRequest{
+    string userId = 1;
+    string movieId = 2;
+    string ipAddress = 3;
+
+}
+message CheckAccessResponse{
+    bool hasAccess =1;
+    string planType= 2;
+    int32 remainingFree =3;
+    string message = 4;
+}

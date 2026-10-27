@@ -18,7 +18,9 @@
     "strictPropertyInitialization": false,
     "esModuleInterop": true,
     "ignoreDeprecations": "6.0",
-    "types": ["node"],
+    "types": [
+      "node"
+    ],
     "paths": {
       "@app/common": [
         "./libs/common/src"
@@ -44,6 +46,9 @@
     },
     {
       "path": "./apps/notification-service/tsconfig.app.json"
+    },
+    {
+      "path": "./apps/subscription-service/tsconfig.app.json"
     }
   ]
 }

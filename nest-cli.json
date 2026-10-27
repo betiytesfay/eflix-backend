@@ -46,6 +46,15 @@
         "tsConfigPath": "apps/notification-service/tsconfig.app.json"
       }
     },
+    "subscription-service": {
+      "type": "application",
+      "root": "apps/subscription-service",
+      "entryFile": "main",
+      "sourceRoot": "apps/subscription-service/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/subscription-service/tsconfig.app.json"
+      }
+    },
     "user-service": {
       "type": "application",
       "root": "apps/user-service",
