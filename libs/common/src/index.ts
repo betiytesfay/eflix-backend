@@ -6,3 +6,4 @@ export * from './guards/jwt-auth.guard';
 export * from './guards/role.guard';
 export * from './strategies/jwt.strategy';
 export * from './interfaces/paginated-response.interface';
+export * from './rmq/rmq.module';

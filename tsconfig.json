@@ -18,6 +18,7 @@
     "strictPropertyInitialization": false,
     "esModuleInterop": true,
     "ignoreDeprecations": "6.0",
+    "types": ["node"],
     "paths": {
       "@app/common": [
         "./libs/common/src"
@@ -40,6 +41,9 @@
     },
     {
       "path": "./apps/movie-service/tsconfig.app.json"
+    },
+    {
+      "path": "./apps/notification-service/tsconfig.app.json"
     }
   ]
 }

@@ -7,7 +7,13 @@ services:
       - "27017:27017"
     volumes:
       - mongo-data:/data/db
-
+  rabbitmq:
+   image: rabbitmq:3-management
+   container_name: eflix-rabbitmq
+   restart: always
+   ports:
+    - "5672:5672"
+    - "15672:15672"
   api:
     build: .
     container_name: eflix-api

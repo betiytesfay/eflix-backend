@@ -1,9 +1,11 @@
 import {
   ConflictException,
+  Inject,
   Injectable,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
+import { ClientProxy } from '@nestjs/microservices';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { JwtService } from '@nestjs/jwt';
@@ -16,6 +18,8 @@ export class AuthService {
   constructor(
     @InjectModel(User.name) private userModel: Model<User>,
     private jwtService: JwtService,
+    @Inject('NOTIFICATION_SERVICE') private readonly notificationClient: ClientProxy,
+
   ) {}
 
   async register(dto: RegisterDto) {
@@ -25,6 +29,12 @@ export class AuthService {
     }
 
     const user = await this.userModel.create(dto);
+    this.notificationClient.emit('user.created',{
+      userId: user._id.toString(),
+      phoneNumber: user.phoneNumber,
+      email:user.email,
+      username:user.username,
+    })
     const token = this.jwtService.sign({ userId: user._id.toString(), role: user.role });
 
     return {

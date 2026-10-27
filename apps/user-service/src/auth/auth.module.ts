@@ -6,7 +6,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
-import { JwtStrategy } from '@app/common';
+import { JwtStrategy ,RmqModule} from '@app/common';
 import { User, UserSchema } from '../users/schemas/user.schema';
 
 @Module({
@@ -21,6 +21,7 @@ import { User, UserSchema } from '../users/schemas/user.schema';
         signOptions: { expiresIn: '7d' },
       }),
     }),
+    RmqModule.register({name: 'NOTIFICATION_SERVICE'}),
   ],
   controllers: [AuthController],
   providers: [AuthService, JwtStrategy],
