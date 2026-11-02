@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { join } from 'path';
+import { RmqModule } from '@app/common';
 import { MovieController } from './movies.controller';
 import { MoviesService } from './movies.service';
 import { Movie, MovieSchema } from './schemas/movie.schema';

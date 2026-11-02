@@ -1,19 +1,32 @@
 import { Injectable, Logger } from '@nestjs/common';
-export interface UserCreatedPayload{
+export interface UserCreatedPayload {
   userId: string;
   phoneNumber: string;
   email?: string;
   username: string;
 }
+export interface MovieCreatedPayload {
+  id: string;
+  title: string;
+  genre: string;
+  releaseYea?: number;
+}
 @Injectable()
 export class NotificationServiceService {
- private readonly logger = new Logger(NotificationServiceService.name);
- async sendWelcomeNotification(data: UserCreatedPayload){
+  private readonly logger = new Logger(NotificationServiceService.name);
+  async sendWelcomeNotification(data: UserCreatedPayload) {
     this.logger.log(`New user ${data.username}`);
-    if(data.email){this.logger.log(`Sending welcome email to ${data.email}`);
+    if (data.email) {
+      this.logger.log(`Sending welcome email to ${data.email}`);
     }
-    if(data.phoneNumber){
-      this.logger.log(`Sending welcome SMS to ${data.phoneNumber}` );
+    if (data.phoneNumber) {
+      this.logger.log(`Sending welcome SMS to ${data.phoneNumber}`);
     }
- }
+  }
+  async sendNewMovieBroadcast(movie: MovieCreatedPayload) {
+    this.logger.log(
+      `[BROADCAST] New movie released: "${movie.title}" (${movie.genre})`,
+    );
+    this.logger.log(`Sending notification to all subscribers`);
+  }
 }

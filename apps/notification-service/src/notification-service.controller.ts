@@ -11,7 +11,7 @@ export class NotificationServiceController {
       async handleUserCreated(@Payload() data: UserCreatedPayload){
         await this.notificationServiceService.sendWelcomeNotification(data);
 
-    
+
   }
     
 }

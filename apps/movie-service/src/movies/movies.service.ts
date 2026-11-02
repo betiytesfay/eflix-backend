@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { ClientGrpc } from '@nestjs/microservices';
+import { ClientGrpc, ClientProxy } from '@nestjs/microservices';
 import { Movie } from './schemas/movie.schema';
 import { firstValueFrom, Observable } from 'rxjs';
 import { CreateMovieDto } from './dto/create-movie.dto';
@@ -38,6 +38,9 @@ export class MoviesService implements OnModuleInit {
 
     @Inject('SUBSCRIPTION_PACKAGE')
     private client: ClientGrpc,
+
+    @Inject('NOTIFICATION_SERVICE')
+    private readonly notificationClient: ClientProxy,
   ) {}
 
   onModuleInit() {
@@ -46,7 +49,14 @@ export class MoviesService implements OnModuleInit {
   }
 
   async create(createMovieDto: CreateMovieDto): Promise<Movie> {
-    return this.movieModel.create(createMovieDto);
+    const movie = await this.movieModel.create(createMovieDto);
+    this.notificationClient.emit('movie.created', {
+      id: movie._id.toString(),
+      title: movie.title,
+      genre: movie.genre,
+      releaseYear: movie.releaseYear,
+    });
+    return movie;
   }
 
   async findAll(query: PaginationQueryDto): Promise<PaginatedResponse<Movie>> {

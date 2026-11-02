@@ -17,7 +17,6 @@ import { GuestUsage, GuestUsageSchema } from './schemas/guest-usage.schema';
       }),
     }),
 
-    // 3. Registers our two schemas so our Service can use them
     MongooseModule.forFeature([
       { name: Subscription.name, schema: SubscriptionSchema },
       { name: GuestUsage.name, schema: GuestUsageSchema },
