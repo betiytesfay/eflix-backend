@@ -3,6 +3,8 @@ import {Document} from 'mongoose';
 @Schema({timestamps: true})
 export class GuestUsage extends Document{
     @Prop({required: true, index: true})
+    guestDeviceId:string;
+    @Prop({required: true, index: true})
     ipAddress: string;
     @Prop({required: true, index: true})
     month: string;
@@ -12,4 +14,4 @@ export class GuestUsage extends Document{
     count: number;
 }
 export const GuestUsageSchema = SchemaFactory.createForClass(GuestUsage);
-GuestUsageSchema.index({ ipAddress:1, month:1}, {unique: true});
+GuestUsageSchema.index({ guestDeviceId: 1, month: 1 }, { unique: true });

@@ -8,6 +8,7 @@ message CheckAccessRequest{
     string userId = 1;
     string movieId = 2;
     string ipAddress = 3;
+    string guestDeviceId= 4;
 
 }
 message CheckAccessResponse{
