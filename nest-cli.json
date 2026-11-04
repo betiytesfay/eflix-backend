@@ -1,14 +1,14 @@
 {
   "$schema": "https://json.schemastore.org/nest-cli",
   "collection": "@nestjs/schematics",
-  "sourceRoot": "apps/eflix-backend/src",
+  "sourceRoot": "apps/user-service/src",
   "compilerOptions": {
     "deleteOutDir": true,
-    "tsConfigPath": "apps/eflix-backend/tsconfig.app.json",
+    "tsConfigPath": "apps/user-service/tsconfig.app.json",
     "builder": "tsc"
   },
   "monorepo": true,
-  "root": "apps/eflix-backend",
+  "root": "apps/user-service",
   "projects": {
     "common": {
       "type": "library",
@@ -19,15 +19,7 @@
         "tsConfigPath": "libs/common/tsconfig.lib.json"
       }
     },
-    "eflix-backend": {
-      "type": "application",
-      "root": "apps/eflix-backend",
-      "entryFile": "main",
-      "sourceRoot": "apps/eflix-backend/src",
-      "compilerOptions": {
-        "tsConfigPath": "apps/eflix-backend/tsconfig.app.json"
-      }
-    },
+
     "movie-service": {
       "type": "application",
       "root": "apps/movie-service",
