@@ -1,5 +1,4 @@
 services:
-  # ─── INFRASTRUCTURE ──────────────────────────────
   mongodb:
     image: mongo:7-jammy
     container_name: eflix-mongo-dev
@@ -17,7 +16,6 @@ services:
       - "5672:5672"
       - "15672:15672"
 
-  # ─── MICROSERVICES ───────────────────────────────
   user-service:
     build:
       context: .

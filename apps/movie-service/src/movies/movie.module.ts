@@ -14,6 +14,7 @@ import { Movie, MovieSchema } from './schemas/movie.schema';
         schema: MovieSchema,
       },
     ]),
+    RmqModule.register({ name: 'NOTIFICATION_SERVICE'}),
     ClientsModule.register([
       {
         name: 'SUBSCRIPTION_PACKAGE',

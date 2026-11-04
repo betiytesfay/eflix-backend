@@ -9,7 +9,7 @@ export interface MovieCreatedPayload {
   id: string;
   title: string;
   genre: string;
-  releaseYea?: number;
+  releaseYear: number;
 }
 @Injectable()
 export class NotificationServiceService {
@@ -22,6 +22,12 @@ export class NotificationServiceService {
     if (data.phoneNumber) {
       this.logger.log(`Sending welcome SMS to ${data.phoneNumber}`);
     }
+  }
+  async sendMovieNotification(data: MovieCreatedPayload) {
+    this.logger.log(
+      `New movie added: "${data.title}" (${data.releaseYear}) - Genre: ${data.genre}`,
+    );
+    this.logger.log(`Notifyin all subscribers about the new movie..`);
   }
   async sendNewMovieBroadcast(movie: MovieCreatedPayload) {
     this.logger.log(
