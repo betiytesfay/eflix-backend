@@ -1,7 +1,14 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { Subscription, SubscriptionStatus, PlanType } from './schemas/subscription.schema';
+import {
+  Subscription,
+  SubscriptionStatus,
+  PlanType,
+} from './schemas/subscription.schema';
+import { Plan } from './schemas/plan.schema';
+import { CreatePlanDto } from './dto/create-plan.dto';
+import { CreateSubscriptionDto } from './dto/create-subscription.dto';
 import { GuestUsage } from './schemas/guest-usage.schema';
 
 export interface CheckAccessRequest {
@@ -28,18 +35,71 @@ export class SubscriptionServiceService {
 
     @InjectModel(GuestUsage.name)
     private guestUsageModel: Model<GuestUsage>,
-  ) {}
 
+    @InjectModel(Plan.name)
+    private planModel: Model<Plan>,
+  ) {}
+  async createPlan(dto: CreatePlanDto): Promise<Plan> {
+    const plan = await this.planModel.create(dto);
+    this.logger.log(`Plan created: ${plan.name}`);
+    return plan;
+  }
+  async getPlans(): Promise<Plan[]> {
+    return this.planModel.find({
+      isActive: true,
+    });
+  }
+  async updatePlan(planId: string, dto: Partial<CreatePlanDto>): Promise<Plan> {
+    const plan = await this.planModel.findByIdAndUpdate(planId, dto, {
+      new: true,
+    });
+    if (!plan) throw new NotFoundException('Plan not found');
+    return plan;
+  }
+  async deletePlan(planId: string): Promise<{ message: string }> {
+    await this.planModel.findByIdAndUpdate(planId, { isActive: false });
+    return { message: ' Plan deleted' };
+  }
+  async getMySubscription(userId: string) {
+    const active = await this.subscriptionModel
+      .findOne({
+        userId,
+        status: SubscriptionStatus.ACTIVE,
+        endDate: { $gt: new Date() },
+      })
+      .sort({});
+    return { hasActiveSubscription: !!active, subscription: active || null };
+  }
+  async createSubscription(userId: string, dto: CreateSubscriptionDto) {
+    const plan = await this.planModel.findOne({
+      type: dto.plan,
+      isActive: true,
+    });
+    if (!plan)
+      throw new NotFoundException(`No active plan found for type: ${dto.plan}`);
+
+    const endDate = new Date();
+    endDate.setDate(endDate.getDate() + plan.durationDays);
+
+    const subscription = await this.subscriptionModel.create({
+      userId,
+      plan: dto.plan,
+      movieId: dto.movieId,
+      status: SubscriptionStatus.ACTIVE,
+      endDate,
+    });
+
+    this.logger.log(
+      `Subscription created for user ${userId}: ${dto.plan} until ${endDate}`,
+    );
+    return subscription;
+  }
   async checkAccess(data: CheckAccessRequest): Promise<CheckAccessResponse> {
     const { userId, movieId, ipAddress, guestDeviceId } = data;
 
-    // ──────────────────────────────────────────────
-    // 1. LOGGED-IN USER CHECK
-    // ──────────────────────────────────────────────
     if (userId) {
       const now = new Date();
 
-      // Check for an active Unlimited Subscription (MONTHLY or YEARLY)
       const activeSubscription = await this.subscriptionModel.findOne({
         userId,
         status: SubscriptionStatus.ACTIVE,
@@ -56,7 +116,6 @@ export class SubscriptionServiceService {
         };
       }
 
-      // Check for a Pay-Per-View pass specifically for this movie
       const ppvPurchase = await this.subscriptionModel.findOne({
         userId,
         status: SubscriptionStatus.ACTIVE,
@@ -74,7 +133,6 @@ export class SubscriptionServiceService {
         };
       }
 
-      // Registered user with no active plan or rental
       return {
         hasAccess: false,
         planType: 'NONE',
@@ -83,9 +141,6 @@ export class SubscriptionServiceService {
       };
     }
 
-    // ──────────────────────────────────────────────
-    // 2. ANONYMOUS GUEST (DEVICE + IP QUOTA)
-    // ──────────────────────────────────────────────
     const currentMonth = new Date().toISOString().slice(0, 7);
     const identifier = guestDeviceId || ipAddress;
 
@@ -126,7 +181,9 @@ export class SubscriptionServiceService {
     guest.count += 1;
     await guest.save();
 
-    this.logger.log(`Guest (${identifier}) watched movie ${movieId}. Count: ${guest.count}/10`);
+    this.logger.log(
+      `Guest (${identifier}) watched movie ${movieId}. Count: ${guest.count}/10`,
+    );
 
     return {
       hasAccess: true,
@@ -136,4 +193,3 @@ export class SubscriptionServiceService {
     };
   }
 }
-

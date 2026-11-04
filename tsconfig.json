@@ -48,6 +48,9 @@
     },
     {
       "path": "./apps/subscription-service/tsconfig.app.json"
+    },
+    {
+      "path": "./apps/payment-service/tsconfig.app.json"
     }
   ]
 }
