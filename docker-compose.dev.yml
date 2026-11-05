@@ -51,6 +51,7 @@ services:
       - MOVIE_SERVICE_PORT=5002
       - MONGO_URI=mongodb://mongodb:27017/eflix
       - RABBITMQ_URL=amqp://rabbitmq:5672
+      - SUBSCRIPTION_GRPC_URL=subscription-service:50051
     volumes:
       - .:/usr/src/app
       - /usr/src/app/node_modules
@@ -91,11 +92,13 @@ services:
     environment:
       - NODE_ENV=development
       - PAYMENT_SERVICE_PORT=5004
+      - MONGO_URI=mongodb://mongodb:27017/eflix
       - RABBITMQ_URL=amqp://rabbitmq:5672
     volumes:
       - .:/usr/src/app
       - /usr/src/app/node_modules
     depends_on:
+      - mongodb
       - rabbitmq
   notification-service:
     build:

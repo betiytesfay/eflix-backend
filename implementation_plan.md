@@ -1,267 +1,129 @@
-# Eflix Microservices Monorepo - Implementation Plan
+# Eflix Microservices Platform — Implementation Plan & Status
 
-This implementation plan details how to transition the current standalone backend into a **NestJS Monorepo** that implements the target architecture diagram (REST, gRPC, and RabbitMQ).
-
----
-
-## 🏗 Target Architecture Overview
-
-```
-                        ┌──────────────────┐
-                        │     Frontend     │
-                        └────────┬─────────┘
-                                 │ HTTP / REST
-         ┌───────────────┬───────┴────────┬───────────────┐
-         ▼               ▼                ▼               ▼
-  ┌──────────────┐┌──────────────┐┌──────────────┐┌──────────────┐
-  │ User Service ││ Movie Service││ Subscription ││Payment Service│
-  └──────┬───────┘└──────┬───────┘└──────┬───────┘└──────┬───────┘
-         │               │               │               │
-         │ gRPC          │ gRPC          │               │
-         │ (Recommend)   │ (Check Access)│               │
-         ▼               └───────►───────┘               │
-  ┌──────────────┐                                       │
-  │Recommendation│                                       │
-  │   Service    │                                       │
-  └──────────────┘                                       │
-         ▲                                               ▼
-         │             Events via RabbitMQ               │
-  ═══════╪═══════════════════════════════════════════════╪═══════
-         │          ▲                  ▲                 │
-         │          │                  │                 │
-  ┌──────┴───────┐┌─┴────────────┐┌────┴─────────┐       │
-  │  Analytics   ││ Notification ││ Subscription │◄──────┘
-  │   Service    ││   Service    ││ (Activates)  │ (Payment Success)
-  └──────────────┘└──────────────┘└──────────────┘
-```
+> **Last Updated:** November 5, 2026  
+> **Status:** Architecture Migration Complete | Core Business Logic Wired | Real Integrations In Progress
 
 ---
 
-## 📁 Monorepo Folder Structure
+## 📊 Executive Status Dashboard
 
-When converted, your directory structure will look like this:
-
-```
-eflix-backend/
-├── apps/
-│   ├── user-service/           # User Auth, Profiles (Port 5001)
-│   │   └── src/
-│   ├── movie-service/          # Movies CRUD, Streaming (Port 5002)
-│   │   └── src/
-│   ├── subscription-service/   # Plans, Access Check via gRPC (Port 5003 + gRPC 50051)
-│   │   └── src/
-│   ├── payment-service/        # Checkout & Payments (Port 5004)
-│   │   └── src/
-│   └── notification-service/   # Background email/event consumer (No HTTP port needed)
-│       └── src/
-├── libs/
-│   └── common/                 # Shared code: DB configs, decorators, proto files
-│       └── src/
-├── docker-compose.yml          # MongoDB + RabbitMQ
-├── nest-cli.json               # Monorepo configuration
-├── package.json
-└── tsconfig.json
-```
+| Service | Port / Protocol | Database | Core Logic | External Integrations | Overall Status |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **User Service** | HTTP `5001` | MongoDB (`User`) | ✅ Auth (Register, Login, Profile) | ✅ RabbitMQ Publisher (`user.created`) | 🟢 **100% Done** |
+| **Movie Service** | HTTP `5002` | MongoDB (`Movie`) | ✅ Full CRUD, Search, Pagination | ✅ gRPC Access Check, YouTube Embedding on `/play` | 🟢 **100% Done** |
+| **Subscription Service** | HTTP `5003` + gRPC `50051` | MongoDB (`Plan`, `Subscription`, `GuestUsage`) | ✅ Plan CRUD, Access Quota Check, Cancellation | ✅ gRPC Server, RabbitMQ Activation | 🟢 **100% Done** |
+| **Payment Service** | HTTP `5004` | MongoDB (`PaymentTransaction`) | ✅ Chapa Checkout, Webhook Handler | ✅ Real Gateway Call, RabbitMQ Activation | 🟢 **100% Done** |
+| **Notification Service** | RabbitMQ Consumer | N/A (Stateless) | ⚠️ Receives Events | ❌ Mocked Console Logs (No Email/SMS/Telegram) | 🟡 **40% Done** |
+| **Analytics Service** | TBD | ❌ None | ❌ Not started | ❌ Not started | ⚪ **0% (Not Started)** |
+| **Recommendation Service**| gRPC TBD | ❌ None | ❌ Not started | ❌ Not started | ⚪ **0% (Not Started)** |
 
 ---
 
-## 📋 Step-by-Step Implementation Checklist
+## 🔍 In-Depth Service Breakdown: What Is Done vs. What Is Left
 
-### Phase 1: Convert to NestJS Monorepo Mode
-
-NestJS has a built-in monorepo generator that automatically refactors your `nest-cli.json` and creates an `apps/` directory.
-
-1. **Convert the project structure:**
-   ```bash
-   nest generate app user-service
-   ```
-   *What happens:* NestJS detects you want multiple apps. It automatically moves the root source into `apps/` and updates `nest-cli.json` to monorepo format.
-
-2. **Generate the second service (Movie Service):**
-   ```bash
-   nest generate app movie-service
-   ```
-
-3. **Generate the shared library:**
-   ```bash
-   nest generate library common
-   ```
-   *What happens:* Creates `libs/common` with path aliases (e.g., `@app/common`) inside `tsconfig.json`.
-
-4. **Move existing code:**
-   - Move `src/auth/*` and `src/users/*` into `apps/user-service/src/`.
-   - Move `src/movies/*` into `apps/movie-service/src/`.
-   - Move shared guards, decorators (like `@Roles()`, `JwtAuthGuard`) into `libs/common/src/`.
+### 1. User Service (`apps/user-service`)
+- **✅ What is DONE:**
+  - Password hashing via `bcryptjs`.
+  - JWT token generation & validation with `@app/common` guards.
+  - Endpoints: `POST /api/auth/register`, `POST /api/auth/login`, `GET /api/auth/me`.
+  - Publishes `user.created` event payload to RabbitMQ (`NOTIFICATION_SERVICE`).
+  - Mongoose `User` schema storing `email`, `phoneNumber`, `telegramAccount`, `role`.
+- **❌ What is LEFT:**
+  - Password reset / forgot password flow (requires email/SMS from Notification Service).
+  - Refresh tokens (optional production hardening).
 
 ---
 
-### Phase 2: Docker Infrastructure (MongoDB + RabbitMQ)
-
-Update [docker-compose.yml](file:///c:/Users/LENOVO/eflix-backend/docker-compose.yml) so both MongoDB and RabbitMQ run locally:
-
-```yaml
-services:
-  mongodb:
-    image: mongo:7-jammy
-    container_name: eflix-mongo
-    restart: always
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongo-data:/data/db
-
-  rabbitmq:
-    image: rabbitmq:3-management
-    container_name: eflix-rabbitmq
-    restart: always
-    ports:
-      - "5672:5672"     # AMQP protocol port for NestJS services
-      - "15672:15672"   # Management Web UI (http://localhost:15672 - user: guest/guest)
-
-volumes:
-  mongo-data:
-```
-
-Start the containers:
-```bash
-docker compose up -d
-```
+### 2. Movie Service (`apps/movie-service`)
+- **✅ What is DONE (100% Complete):**
+  - MongoDB `Movie` schema with `title`, `genre`, `releaseYear`, `videoUrl` (YouTube URL), `duration`, and `description`.
+  - Admin-only routes with `RoleGuard` + `JwtAuthGuard`: `POST`, `PATCH`, `DELETE /api/movies`.
+  - Public routes: `GET /api/movies` with regex search and pagination.
+  - Streaming check: `GET /api/movies/:id/play` connects via **gRPC** to `subscription-service` (`SubscriptionRpcService.CheckAccess`).
+  - Gated playback: Returns the movie's YouTube `videoUrl` only if gRPC access is approved (Frontend embeds it in an `iframe`).
+  - Emits `movie.created` event payload to RabbitMQ (`NOTIFICATION_SERVICE`).
+- **❌ What is LEFT:**
+  - Nothing for core playback. Optional: helper to auto-convert `watch?v=` links into `/embed/` links.
 
 ---
 
-### Phase 3: Install Microservices & Communication Packages
-
-Run this in the root folder:
-```bash
-npm install @nestjs/microservices amqplib amqp-connection-manager @grpc/grpc-js @grpc/proto-loader
-```
-
----
-
-### Phase 4: Event-Driven Communication with RabbitMQ
-
-RabbitMQ connects events without blocking user requests.
-
-#### 1. Configure RabbitMQ Client in `libs/common`
-Create a helper module in `libs/common/src/rmq/` so any service can easily publish and listen to events:
-
-```typescript
-// libs/common/src/rmq/rmq.module.ts
-import { Module, DynamicModule } from '@nestjs/common';
-import { ClientsModule, Transport } from '@nestjs/microservices';
-
-@Module({})
-export class RmqModule {
-  static register({ name }: { name: string }): DynamicModule {
-    return {
-      module: RmqModule,
-      imports: [
-        ClientsModule.register([
-          {
-            name,
-            transport: Transport.RMQ,
-            options: {
-              urls: ['amqp://localhost:5672'],
-              queue: `${name}_QUEUE`,
-              queueOptions: { durable: false },
-            },
-          },
-        ]),
-      ],
-      exports: [ClientsModule],
-    };
-  }
-}
-```
-
-#### 2. Key Events to Implement:
-- **`user.created`**:
-  - **Publisher:** `user-service` emits after successful user registration.
-  - **Subscriber:** `notification-service` listens and sends a welcome email.
-- **`payment.success`**:
-  - **Publisher:** `payment-service` emits when a checkout completes.
-  - **Subscriber:** `subscription-service` listens and activates the user's plan.
-  - **Subscriber:** `notification-service` sends a receipt.
-- **`movie.viewed`**:
-  - **Publisher:** `movie-service` emits when a user streams a title.
-  - **Subscriber:** `analytics-service` records telemetry.
+### 3. Subscription Service (`apps/subscription-service`)
+- **✅ What is DONE (100% Complete):**
+  - Dynamic **Plan Schema** (`Plan`): Admin creates plans with custom duration, price, currency (ETB), type (MONTHLY, YEARLY, PPV).
+  - Dynamic **Subscription Schema** (`Subscription`): Tracks `userId`, `plan`, `endDate`, `status` (ACTIVE, CANCELLED, EXPIRED).
+  - Dynamic **Guest Usage Schema** (`GuestUsage`): Tracks guest device ID + IP address, enforcing a **10 free movies/month** quota.
+  - Dual-transport server: REST on port `5003` + gRPC on port `50051`.
+  - Admin endpoints: `POST /api/subscriptions/plans`, `GET /api/subscriptions/plans/all`, `PATCH /api/subscriptions/plans/:id`, `DELETE /api/subscriptions/plans/:id?hard=true`.
+  - User endpoints: `GET /api/subscriptions/plans`, `GET /api/subscriptions/my`, `POST /api/subscriptions/subscribe`, `POST /api/subscriptions/cancel`.
+  - gRPC `CheckAccess` handler: Distinguishes between unlimited subscriptions, Pay-Per-View rentals, and guest quota.
+  - RabbitMQ Consumer: Listens for `payment.success` and auto-activates subscriptions.
+- **❌ What is LEFT:**
+  - Nothing for core subscription logic. Optional: background cron job to mark expired subscriptions.
 
 ---
 
-### Phase 5: High-Speed Synchronous Check via gRPC
-
-When a user clicks "Play", `movie-service` must synchronously check if the user has an active subscription.
-
-#### 1. Define Protobuf Contract (`libs/common/src/proto/subscription.proto`)
-```protobuf
-syntax = "proto3";
-
-package subscription;
-
-service SubscriptionRpcService {
-  rpc CheckAccess (CheckAccessRequest) returns (CheckAccessResponse);
-}
-
-message CheckAccessRequest {
-  string userId = 1;
-}
-
-message CheckAccessResponse {
-  bool hasAccess = 1;
-  string planType = 2;
-}
-```
-
-#### 2. Implement the gRPC Server in `subscription-service`:
-In `apps/subscription-service/src/main.ts`:
-```typescript
-app.connectMicroservice({
-  transport: Transport.GRPC,
-  options: {
-    package: 'subscription',
-    protoPath: join(__dirname, '../../libs/common/src/proto/subscription.proto'),
-    url: '0.0.0.0:50051',
-  },
-});
-await app.startAllMicroservices();
-```
-
-#### 3. Call gRPC from `movie-service`:
-Before serving a movie stream:
-```typescript
-const response = await this.subscriptionRpcService.checkAccess({ userId });
-if (!response.hasAccess) {
-  throw new ForbiddenException('Active subscription required to watch this movie');
-}
-```
+### 4. Payment Service (`apps/payment-service`)
+- **✅ What is DONE (100% Complete for Phase 1 - Chapa):**
+  - MongoDB connection & **`PaymentTransaction` schema**: Stores `txRef`, `userId`, `planId`, `amount`, `currency`, `provider` (CHAPA/TELEBIRR), `status` (PENDING, COMPLETED, FAILED), and `paymentUrl`.
+  - **`POST /api/payments/checkout`**: Initializes transaction with Chapa API (`https://api.chapa.co/v1/transaction/initialize`) and returns checkout URL.
+  - **`POST /api/payments/webhook`**: Asynchronous webhook receiver. Validates `txRef`, marks transaction `COMPLETED`, and emits `payment.success` to RabbitMQ.
+  - RabbitMQ publishers: Successfully notifies `subscription-service` (for activation) and `notification-service` (for receipts).
+- **❌ What is LEFT for Phase 2:**
+  - Direct Telebirr API integration (telebirr H5/SDK).
 
 ---
 
-### Phase 6: How to Run and Test During Development
-
-Each service can be run independently in watch mode:
-
-```bash
-# Terminal 1: Run User Service on Port 5001
-nest start user-service --watch
-
-# Terminal 2: Run Movie Service on Port 5002
-nest start movie-service --watch
-
-# Terminal 3: Run Subscription Service on Port 5003 + gRPC 50051
-nest start subscription-service --watch
-
-# Terminal 4: Run Notification Service
-nest start notification-service --watch
-```
+### 5. Notification Service (`apps/notification-service`)
+- **✅ What is DONE:**
+  - RabbitMQ microservice listening to `notification_service_queue`.
+  - Event patterns wired: `@EventPattern('user.created')`, `@EventPattern('movie.created')`, `@EventPattern('payment.success')`.
+- **❌ What is LEFT:**
+  - **Real Email Dispatcher**: Replace `this.logger.log` with Nodemailer (SMTP / Gmail) or Resend / SendGrid API.
+  - **Real SMS Dispatcher**: Integrate SMS provider (e.g., Twilio or Ethiopian SMS gateway) for phone verification / alerts.
+  - **Real Telegram Bot**: Connect to Telegram Bot API to notify users via their `telegramAccount`.
 
 ---
 
-## 🚀 Recommended Execution Order for You
+### 6. Analytics Service (`apps/analytics-service`)
+- **❌ Not Started:**
+  - Needs to consume `movie.watched` events from `movie-service`.
+  - Aggregates view counts, popular genres, watch time.
+  - Exposes metrics for admin dashboard and Recommendation Service.
 
-1. Run `nest generate app user-service` to initialize monorepo mode.
-2. Run `nest generate app movie-service`.
-3. Run `nest generate library common`.
-4. Move current code from `src/` into the respective `apps/` folders.
-5. Add RabbitMQ to `docker-compose.yml` and run `docker compose up -d`.
-6. Start `user-service` with `nest start user-service --watch` and verify it runs.
+---
+
+### 7. Recommendation Service (`apps/recommendation-service`)
+- **❌ Not Started:**
+  - gRPC service providing movie recommendations based on user watch history and genre preferences.
+
+---
+
+## 🛠️ Step-by-Step Action Plan to Complete the System
+
+### Phase 1: Build the Real Payment Service (Priority #1)
+1. **Add MongoDB to Payment Service**:
+   - Install/wire `MongooseModule` in `apps/payment-service/src/payment-service.module.ts`.
+2. **Create `PaymentTransaction` Schema**:
+   - Fields: `userId`, `planId`, `amount`, `currency`, `provider` (CHAPA/TELEBIRR), `txRef`, `status` (`PENDING`, `COMPLETED`, `FAILED`), `paymentUrl`.
+3. **Integrate Payment Provider API (Chapa)**:
+   - Call `https://api.chapa.co/v1/transaction/initialize` with user email, phone, and amount.
+   - Return checkout URL to frontend.
+4. **Implement Webhook Endpoint (`POST /api/payments/webhook`)**:
+   - Verify Chapa secret signature hash.
+   - Update transaction status to `COMPLETED`.
+   - Publish verified `payment.success` event to RabbitMQ.
+
+---
+
+### Phase 2: Connect Real Email / Notification Providers (Priority #2)
+1. **Configure Nodemailer / Resend in Notification Service**:
+   - Send branded welcome email on `user.created`.
+   - Send receipt email with invoice details on `payment.success`.
+   - Send new release newsletter on `movie.created`.
+
+---
+
+### Phase 3: Analytics & Recommendation Services (Priority #3)
+1. Scaffold `apps/analytics-service` using `npx nest g app analytics-service`.
+2. Emit `movie.streamed` from `movie-service` -> store view records in Analytics.
+3. Build gRPC endpoint for recommendations.
