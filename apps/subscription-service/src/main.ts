@@ -10,12 +10,21 @@ async function bootstrap() {
   app.connectMicroservice<MicroserviceOptions>({
     transport: Transport.GRPC,
     options: {
-      package: ' subscription',
+      package: 'subscription',
       protoPath: join(
         __dirname,
         '../../../../libs/common/src/proto/subscription.proto',
       ),
       url: '0.0.0.0:50051',
+    },
+  });
+  app.connectMicroservice<MicroserviceOptions>({
+    transport: Transport.RMQ,
+    options: {
+      urls: [process.env.RABBITMQ_URL || 'amqp://localhost:5672'],
+      queue:
+        process.env.RABBITMQ_SUBSCRIPTION_QUEUE || 'subscription_service_queue',
+      queueOptions: { durable: true },
     },
   });
   app.useGlobalPipes(new ValidationPipe({ whitelist: true }));

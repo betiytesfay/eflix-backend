@@ -16,6 +16,7 @@
     "start:movies": "nest start movie-service --watch",
     "start:debug": "nest start --debug --watch",
     "start:notifications": "nest start notification-service --watch",
+    "start:payments": "nest start payment-service --watch",
     "start:prod": "node dist/apps/eflix-backend/apps/eflix-backend/src/main",
     "lint": "oxlint --type-aware src/ test/",
     "test": "vitest run",

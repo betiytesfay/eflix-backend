@@ -1,8 +1,14 @@
 import { NestFactory } from '@nestjs/core';
+import { ValidationPipe } from '@nestjs/common';
 import { PaymentServiceModule } from './payment-service.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(PaymentServiceModule);
-  await app.listen(process.env.port ?? 3000);
+  app.setGlobalPrefix('api');
+  app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
+  const port = process.env.PAYMENT_SERVICE_PORT || 5004;
+  await app.listen(port);
+  console.log(`Payment service running on http://localhost:${port}`);
 }
+
 bootstrap();

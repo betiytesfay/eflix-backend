@@ -9,7 +9,7 @@ import {
   Request,
   UseGuards,
 } from '@nestjs/common';
-import { GrpcMethod } from '@nestjs/microservices';
+import { GrpcMethod, EventPattern, Payload } from '@nestjs/microservices';
 import { JwtAuthGuard, RoleGuard, Roles, UserRole } from '@app/common';
 import {
   SubscriptionServiceService,
@@ -60,6 +60,10 @@ export class SubscriptionServiceController {
   @Get('my')
   getMySubscription(@Request() req: any) {
     return this.subscriptionServiceService.getMySubscription(req.user.userId);
+  }
+  @EventPattern('payment.success')
+  async handlePaymentSuccess(@Payload() data: any) {
+    await this.subscriptionServiceService.activateFromPayment(data);
   }
 
   @UseGuards(JwtAuthGuard)

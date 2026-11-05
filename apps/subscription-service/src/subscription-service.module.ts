@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { RmqModule } from '@app/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { SubscriptionServiceController } from './subscription-service.controller';
@@ -14,6 +15,7 @@ import { Plan, PlanSchema } from './schemas/plan.schema';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    RmqModule.register({ name: 'SUBSCRIPTION_SERVICE' }),
 
     MongooseModule.forRootAsync({
       inject: [ConfigService],

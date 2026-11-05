@@ -17,25 +17,17 @@
     "strict": false,
     "strictPropertyInitialization": false,
     "esModuleInterop": true,
-    "types": [
-      "node"
-    ],
+    "ignoreDeprecations": "6.0",
+    "types": ["node"],
     "paths": {
-      "@app/common": [
-        "./libs/common/src"
-      ],
-      "@app/common/*": [
-        "./libs/common/src/*"
-      ]
+      "@app/common": ["./libs/common/src"],
+      "@app/common/*": ["./libs/common/src/*"]
     }
   },
   "files": [],
   "references": [
     {
       "path": "./libs/common/tsconfig.lib.json"
-    },
-    {
-      "path": "./apps/eflix-backend/tsconfig.app.json"
     },
     {
       "path": "./apps/user-service/tsconfig.app.json"

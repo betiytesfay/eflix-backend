@@ -11,6 +11,13 @@ export interface MovieCreatedPayload {
   genre: string;
   releaseYear: number;
 }
+export interface PaymentSuccessPayload {
+  userId: string;
+  planId: string;
+  movieId?: string;
+  paymentMethod: string;
+  paidAt: Date;
+}
 @Injectable()
 export class NotificationServiceService {
   private readonly logger = new Logger(NotificationServiceService.name);
@@ -22,6 +29,12 @@ export class NotificationServiceService {
     if (data.phoneNumber) {
       this.logger.log(`Sending welcome SMS to ${data.phoneNumber}`);
     }
+  }
+  async sendPaymentConfirmation(data: PaymentSuccessPayload) {
+    this.logger.log(
+      `Payment confirmed for user ${data.userId} via ${data.paymentMethod}`,
+    );
+    this.logger.log(`Sending payment confirmation notification...`);
   }
   async sendMovieNotification(data: MovieCreatedPayload) {
     this.logger.log(

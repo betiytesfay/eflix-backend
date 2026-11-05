@@ -70,6 +70,29 @@ export class SubscriptionServiceService {
       .sort({});
     return { hasActiveSubscription: !!active, subscription: active || null };
   }
+  async activateFromPayment(data: {
+    userId: string;
+    planId: string;
+    movieId?: string;
+  }) {
+    const plan = await this.planModel.findById(data.planId);
+    if (!plan) return;
+
+    const endDate = new Date();
+    endDate.setDate(endDate.getDate() + plan.durationDays);
+
+    await this.subscriptionModel.create({
+      userId: data.userId,
+      plan: plan.type,
+      movieId: data.movieId,
+      status: SubscriptionStatus.ACTIVE,
+      endDate,
+    });
+
+    this.logger.log(
+      `Subscription activated for user ${data.userId}: ${plan.type}`,
+    );
+  }
   async createSubscription(userId: string, dto: CreateSubscriptionDto) {
     const plan = await this.planModel.findOne({
       type: dto.plan,

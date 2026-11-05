@@ -4,6 +4,7 @@ import {
   NotificationServiceService,
   UserCreatedPayload,
   MovieCreatedPayload,
+  PaymentSuccessPayload,
 } from './notification-service.service';
 
 @Controller()
@@ -20,5 +21,9 @@ export class NotificationServiceController {
   @EventPattern('movie.created')
   async handleMovieCreated(@Payload() data: MovieCreatedPayload) {
     await this.notificationServiceService.sendNewMovieBroadcast(data);
+  }
+  @EventPattern('payment.success')
+  async handlePaymentSuccess(@Payload() data: PaymentSuccessPayload) {
+    await this.notificationServiceService.sendPaymentConfirmation(data);
   }
 }

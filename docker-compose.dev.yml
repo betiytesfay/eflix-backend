@@ -4,7 +4,7 @@ services:
     container_name: eflix-mongo-dev
     restart: unless-stopped
     ports:
-      - "27017:27017"
+      - '27017:27017'
     volumes:
       - mongo-dev-data:/data/db
 
@@ -13,8 +13,8 @@ services:
     container_name: eflix-rabbitmq-dev
     restart: unless-stopped
     ports:
-      - "5672:5672"
-      - "15672:15672"
+      - '5672:5672'
+      - '15672:15672'
 
   user-service:
     build:
@@ -24,7 +24,7 @@ services:
         APP_NAME: user-service
     container_name: eflix-user-dev
     ports:
-      - "5001:5001"
+      - '5001:5001'
     environment:
       - NODE_ENV=development
       - USER_SERVICE_PORT=5001
@@ -45,7 +45,7 @@ services:
         APP_NAME: movie-service
     container_name: eflix-movie-dev
     ports:
-      - "5002:5002"
+      - '5002:5002'
     environment:
       - NODE_ENV=development
       - MOVIE_SERVICE_PORT=5002
@@ -66,8 +66,8 @@ services:
         APP_NAME: subscription-service
     container_name: eflix-subscription-dev
     ports:
-      - "5003:5003"
-      - "50051:50051"
+      - '5003:5003'
+      - '50051:50051'
     environment:
       - NODE_ENV=development
       - SUBSCRIPTION_SERVICE_PORT=5003
@@ -79,7 +79,24 @@ services:
     depends_on:
       - mongodb
       - rabbitmq
-
+  payment-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+      args:
+        APP_NAME: payment-service
+    container_name: eflix-payment-dev
+    ports:
+      - '5004:5004'
+    environment:
+      - NODE_ENV=development
+      - PAYMENT_SERVICE_PORT=5004
+      - RABBITMQ_URL=amqp://rabbitmq:5672
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    depends_on:
+      - rabbitmq
   notification-service:
     build:
       context: .
