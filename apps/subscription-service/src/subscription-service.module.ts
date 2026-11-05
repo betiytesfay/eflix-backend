@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
-import { RmqModule } from '@app/common';
+import { RmqModule, JwtStrategy } from '@app/common';
+import { PassportModule } from '@nestjs/passport';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { SubscriptionServiceController } from './subscription-service.controller';
@@ -15,6 +16,7 @@ import { Plan, PlanSchema } from './schemas/plan.schema';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    PassportModule,
     RmqModule.register({ name: 'SUBSCRIPTION_SERVICE' }),
 
     MongooseModule.forRootAsync({
@@ -25,7 +27,7 @@ import { Plan, PlanSchema } from './schemas/plan.schema';
       }),
     }),
     JwtModule.register({
-      secret: process.env.JWT_SECRET || 'secret',
+      secret: process.env.JWT_SECRET || 'super_secret_jwt_key_2026',
       signOptions: { expiresIn: '7d' },
     }),
 
@@ -36,7 +38,7 @@ import { Plan, PlanSchema } from './schemas/plan.schema';
     ]),
   ],
   controllers: [SubscriptionServiceController],
-  providers: [SubscriptionServiceService],
+  providers: [SubscriptionServiceService, JwtStrategy],
   exports: [SubscriptionServiceService],
 })
 export class SubscriptionServiceModule {}

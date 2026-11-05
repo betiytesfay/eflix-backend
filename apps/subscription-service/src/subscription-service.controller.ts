@@ -8,6 +8,7 @@ import {
   Post,
   Request,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import { GrpcMethod, EventPattern, Payload } from '@nestjs/microservices';
 import { JwtAuthGuard, RoleGuard, Roles, UserRole } from '@app/common';
@@ -36,7 +37,12 @@ export class SubscriptionServiceController {
   createPlan(@Body() dto: CreatePlanDto) {
     return this.subscriptionServiceService.createPlan(dto);
   }
-
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  @Roles(UserRole.Admin)
+  @Get('plans/all')
+  getAllPlansAdmin() {
+    return this.subscriptionServiceService.getAllPlansAdmin();
+  }
   @UseGuards(JwtAuthGuard, RoleGuard)
   @Roles(UserRole.Admin)
   @Patch('plans/:id')
@@ -47,8 +53,9 @@ export class SubscriptionServiceController {
   @UseGuards(JwtAuthGuard, RoleGuard)
   @Roles(UserRole.Admin)
   @Delete('plans/:id')
-  deletePlan(@Param('id') id: string) {
-    return this.subscriptionServiceService.deletePlan(id);
+  deletePlan(@Param('id') id: string, @Query('hard') hard?: string) {
+    const isHard = hard === 'true';
+    return this.subscriptionServiceService.deletePlan(id, isHard);
   }
 
   @Get('plans')
@@ -73,5 +80,10 @@ export class SubscriptionServiceController {
       req.user.userId,
       dto,
     );
+  }
+  @UseGuards(JwtAuthGuard)
+  @Post('cancel')
+  cancelSubscription(@Request() req: any) {
+    return this.subscriptionServiceService.cancelSubscription(req.user.userId);
   }
 }

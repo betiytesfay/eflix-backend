@@ -7,6 +7,7 @@ import { SubscriptionServiceModule } from './subscription-service.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(SubscriptionServiceModule);
+  app.setGlobalPrefix('api');
   app.connectMicroservice<MicroserviceOptions>({
     transport: Transport.GRPC,
     options: {

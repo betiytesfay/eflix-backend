@@ -39,16 +39,23 @@ export class SubscriptionServiceService {
     @InjectModel(Plan.name)
     private planModel: Model<Plan>,
   ) {}
+
   async createPlan(dto: CreatePlanDto): Promise<Plan> {
     const plan = await this.planModel.create(dto);
     this.logger.log(`Plan created: ${plan.name}`);
     return plan;
   }
+
   async getPlans(): Promise<Plan[]> {
     return this.planModel.find({
       isActive: true,
     });
   }
+
+  async getAllPlansAdmin(): Promise<Plan[]> {
+    return this.planModel.find().sort({ createdAt: -1 });
+  }
+
   async updatePlan(planId: string, dto: Partial<CreatePlanDto>): Promise<Plan> {
     const plan = await this.planModel.findByIdAndUpdate(planId, dto, {
       new: true,
@@ -56,10 +63,22 @@ export class SubscriptionServiceService {
     if (!plan) throw new NotFoundException('Plan not found');
     return plan;
   }
-  async deletePlan(planId: string): Promise<{ message: string }> {
-    await this.planModel.findByIdAndUpdate(planId, { isActive: false });
-    return { message: ' Plan deleted' };
+
+  async deletePlan(planId: string, hard = false): Promise<{ message: string }> {
+    if (hard) {
+      const deleted = await this.planModel.findByIdAndDelete(planId);
+      if (!deleted) throw new NotFoundException('Plan not found');
+      return { message: 'Plan permanently deleted' };
+    }
+    const plan = await this.planModel.findByIdAndUpdate(
+      planId,
+      { isActive: false },
+      { new: true },
+    );
+    if (!plan) throw new NotFoundException('Plan not found');
+    return { message: 'Plan deactivated' };
   }
+
   async getMySubscription(userId: string) {
     const active = await this.subscriptionModel
       .findOne({
@@ -67,9 +86,34 @@ export class SubscriptionServiceService {
         status: SubscriptionStatus.ACTIVE,
         endDate: { $gt: new Date() },
       })
-      .sort({});
+      .sort({ endDate: -1 });
     return { hasActiveSubscription: !!active, subscription: active || null };
   }
+
+  async cancelSubscription(userId: string) {
+    const subscription = await this.subscriptionModel
+      .findOne({
+        userId,
+        status: SubscriptionStatus.ACTIVE,
+        endDate: { $gt: new Date() },
+      })
+      .sort({ endDate: -1 });
+
+    if (!subscription) {
+      throw new NotFoundException('No active subscription found to cancel');
+    }
+
+    subscription.status = SubscriptionStatus.CANCELLED;
+    subscription.autoRenew = false;
+    await subscription.save();
+
+    this.logger.log(`Subscription cancelled for user ${userId}`);
+    return {
+      message: 'Subscription cancelled successfully',
+      subscription,
+    };
+  }
+
   async activateFromPayment(data: {
     userId: string;
     planId: string;
@@ -93,6 +137,7 @@ export class SubscriptionServiceService {
       `Subscription activated for user ${data.userId}: ${plan.type}`,
     );
   }
+
   async createSubscription(userId: string, dto: CreateSubscriptionDto) {
     const plan = await this.planModel.findOne({
       type: dto.plan,
@@ -117,6 +162,7 @@ export class SubscriptionServiceService {
     );
     return subscription;
   }
+
   async checkAccess(data: CheckAccessRequest): Promise<CheckAccessResponse> {
     const { userId, movieId, ipAddress, guestDeviceId } = data;
 
