@@ -2,7 +2,8 @@ import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { join } from 'path';
-import { RmqModule } from '@app/common';
+import { PassportModule } from '@nestjs/passport';
+import { RmqModule, JwtStrategy } from '@app/common';
 import { MovieController } from './movies.controller';
 import { MoviesService } from './movies.service';
 import { Movie, MovieSchema } from './schemas/movie.schema';
@@ -14,6 +15,7 @@ import { Movie, MovieSchema } from './schemas/movie.schema';
         schema: MovieSchema,
       },
     ]),
+    PassportModule,
     RmqModule.register({ name: 'NOTIFICATION_SERVICE'}),
     ClientsModule.register([
       {
@@ -31,7 +33,7 @@ import { Movie, MovieSchema } from './schemas/movie.schema';
     ]),
   ],
   controllers: [MovieController],
-  providers: [MoviesService],
+  providers: [MoviesService, JwtStrategy],
   exports: [MoviesService],
 })
 export class MoviesModule {}

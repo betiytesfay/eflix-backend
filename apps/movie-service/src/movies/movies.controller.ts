@@ -16,7 +16,7 @@ import { MoviesService } from './movies.service';
 import { CreateMovieDto } from './dto/create-movie.dto';
 import { UpdateMovieDto } from './dto/update-movie.dto';
 import { PaginationQueryDto } from './dto/pagination-query.dto';
-import { JwtAuthGuard, RoleGuard, Roles, UserRole } from '@app/common';
+import { JwtAuthGuard, OptionalJwtAuthGuard, RoleGuard, Roles, UserRole } from '@app/common';
 
 @Controller('movies')
 export class MovieController {
@@ -33,6 +33,7 @@ export class MovieController {
   findAll(@Query() query: PaginationQueryDto) {
     return this.moviesService.findAll(query);
   }
+  @UseGuards(OptionalJwtAuthGuard)
   @Get(':id/play')
   streamMovie(
     @Param('id') id: string,

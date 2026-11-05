@@ -1,4 +1,12 @@
-import { Body, Controller, Post, Request, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Post,
+  Request,
+  UseGuards,
+  HttpCode,
+  HttpStatus,
+} from '@nestjs/common';
 import { JwtAuthGuard } from '@app/common';
 import { PaymentServiceService } from './payment-service.service';
 import { CheckoutDto } from './dto/checkout.dto';
@@ -11,5 +19,11 @@ export class PaymentServiceController {
   @Post('checkout')
   checkout(@Request() req: any, @Body() dto: CheckoutDto) {
     return this.paymentServiceService.checkout(req.user.userId, dto);
+  }
+
+  @Post('webhook')
+  @HttpCode(HttpStatus.OK)
+  handleWebhook(@Body() data: any) {
+    return this.paymentServiceService.handleWebhook(data);
   }
 }
