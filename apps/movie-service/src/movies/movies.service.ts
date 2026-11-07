@@ -130,10 +130,15 @@ export class MoviesService implements OnModuleInit {
         id: movie._id,
         title: movie.title,
         genre: movie.genre,
-        streamUrl:
-          (movie as any).videoUrl || 'https://streaming.eflic.com/demo.mp4',
+        streamUrl: this.formatEmbedUrl(movie.videoUrl),
       },
     };
+  }
+
+  private formatEmbedUrl(url?: string): string {
+    if (!url) return '';
+    const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
+    return match ? `https://www.youtube.com/embed/${match[1]}` : url;
   }
   async update(id: string, updateMovieDto: UpdateMovieDto): Promise<Movie> {
     const updatedMovie = await this.movieModel

@@ -41,9 +41,10 @@
   - Public routes: `GET /api/movies` with regex search and pagination.
   - Streaming check: `GET /api/movies/:id/play` connects via **gRPC** to `subscription-service` (`SubscriptionRpcService.CheckAccess`).
   - Gated playback: Returns the movie's YouTube `videoUrl` only if gRPC access is approved (Frontend embeds it in an `iframe`).
+  - Auto-normalizes YouTube URLs (`watch?v=`, `youtu.be/`) into iframe-ready `/embed/` links.
   - Emits `movie.created` event payload to RabbitMQ (`NOTIFICATION_SERVICE`).
 - **❌ What is LEFT:**
-  - Nothing for core playback. Optional: helper to auto-convert `watch?v=` links into `/embed/` links.
+  - None for core playback.
 
 ---
 
