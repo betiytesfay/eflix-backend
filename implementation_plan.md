@@ -4,7 +4,7 @@
 
 | Service | Port | Status | Core Responsibility |
 | :--- | :--- | :--- | :--- |
-| **user-service** | `5001` | In Progress | Auth, User Profiles, Admin Management |
+| **user-service** | `5001` | Complete | Auth, User Profiles, Admin Management |
 | **movie-service** | `5002` | Complete | Movie CRUD, Streaming Check, YouTube Embed |
 | **subscription-service** | `5003` / `50051` | Complete | Plans, Subscriptions, Guest Quotas (gRPC) |
 | **payment-service** | `5004` | Complete | Chapa Checkout & Webhook Integration |
@@ -14,15 +14,15 @@
 
 ## 2. Current Sprint: User Service Expansion
 
-- [ ] **Flexible Login**
+- [x] **Flexible Login**
   - Allow login with either `phoneNumber` OR `email` + `password`.
-- [ ] **Password Management**
+- [x] **Password Management**
   - `POST /api/auth/forgot-password` (emits reset event to RabbitMQ).
   - `POST /api/auth/reset-password` (validates reset code/token).
   - `POST /api/auth/change-password` (for logged-in users).
-- [ ] **Profile Management**
+- [x] **Profile Management**
   - `PATCH /api/auth/profile` (update username, email, telegram).
-- [ ] **Admin User Management**
+- [x] **Admin User Management**
   - `GET /api/users` (list users with pagination & search).
   - `PATCH /api/users/:id/role` (promote/demote user roles).
   - `DELETE /api/users/:id` (remove user account).

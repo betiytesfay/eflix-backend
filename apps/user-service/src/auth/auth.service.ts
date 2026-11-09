@@ -16,6 +16,7 @@ import { LoginDto } from './dto/login.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 import * as crypto from 'crypto';
 
 @Injectable()
@@ -122,6 +123,42 @@ export class AuthService {
     await user.save();
     return {
       message: 'Password changed successfully.',
+    };
+  }
+  async updateProfile(userId: string, dto: UpdateProfileDto) {
+    if (dto.email) {
+      const emailLower = dto.email.trim().toLowerCase();
+      const existing = await this.userModel.findOne({
+        email: emailLower,
+        _id: { $ne: userId },
+      });
+      if (existing) {
+        throw new ConflictException(
+          'Email is already in use by another account.',
+        );
+      }
+      dto.email = emailLower;
+    }
+
+    const user = await this.userModel
+      .findByIdAndUpdate(userId, { $set: dto }, { new: true })
+      .select('-password');
+
+    if (!user) {
+      throw new NotFoundException('User not found.');
+    }
+
+    return {
+      message: 'Profile updated successfully',
+      user: {
+        id: user._id,
+        phoneNumber: user.phoneNumber,
+        username: user.username,
+        email: user.email,
+        telegramAccount: user.telegramAccount,
+        role: user.role,
+        updatedAt: user.updatedAt,
+      },
     };
   }
   async login(dto: LoginDto) {
