@@ -22,6 +22,12 @@ export class User extends Document {
   @Prop({ required: true, minlength: 6 })
   password: string;
 
+  @Prop({ trim: true, default: null })
+  resetToken?: string;
+
+  @Prop({ type: Date, default: null })
+  resetTokenExpiry?: Date;
+
   @Prop({ type: String, enum: Object.values(UserRole), default: UserRole.User })
   role: UserRole;
 
@@ -41,6 +47,8 @@ UserSchema.pre('save', async function () {
   this.password = await bcrypt.hash(this.password as string, salt);
 });
 
-UserSchema.methods.comparePassword = async function (candidate: string): Promise<boolean> {
+UserSchema.methods.comparePassword = async function (
+  candidate: string,
+): Promise<boolean> {
   return bcrypt.compare(candidate, this.password);
 };
