@@ -162,7 +162,23 @@ export class SubscriptionServiceService {
     );
     return subscription;
   }
+  async expireOverdueSubscriptions() {
+    const result = await this.subscriptionModel.updateMany(
+      {
+        status: SubscriptionStatus.ACTIVE,
+        endDate: { $lte: new Date() },
+      },
+      {
+        $set: { status: SubscriptionStatus.EXPIRED },
+      },
+    );
 
+    this.logger.log(`Expired ${result.modifiedCount} overdue subscriptions.`);
+    return {
+      message: 'Overdue subscriptions updated to EXPIRED',
+      modifiedCount: result.modifiedCount,
+    };
+  }
   async checkAccess(data: CheckAccessRequest): Promise<CheckAccessResponse> {
     const { userId, movieId, ipAddress, guestDeviceId } = data;
 

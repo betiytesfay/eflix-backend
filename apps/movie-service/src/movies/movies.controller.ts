@@ -16,7 +16,13 @@ import { MoviesService } from './movies.service';
 import { CreateMovieDto } from './dto/create-movie.dto';
 import { UpdateMovieDto } from './dto/update-movie.dto';
 import { PaginationQueryDto } from './dto/pagination-query.dto';
-import { JwtAuthGuard, OptionalJwtAuthGuard, RoleGuard, Roles, UserRole } from '@app/common';
+import {
+  JwtAuthGuard,
+  OptionalJwtAuthGuard,
+  RoleGuard,
+  Roles,
+  UserRole,
+} from '@app/common';
 
 @Controller('movies')
 export class MovieController {
@@ -32,6 +38,31 @@ export class MovieController {
   @Get()
   findAll(@Query() query: PaginationQueryDto) {
     return this.moviesService.findAll(query);
+  }
+  @UseGuards(JwtAuthGuard)
+  @Get('my/favorites')
+  getMyFavorites(
+    @Req() req: any,
+    @Query('page') page = 1,
+    @Query('limit') limit = 10,
+  ) {
+    return this.moviesService.getMyFavorites(
+      req.user.userId,
+      Number(page),
+      Number(limit),
+    );
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post(':id/favorite')
+  toggleFavorite(@Param('id') id: string, @Req() req: any) {
+    return this.moviesService.toggleFavorite(req.user.userId, id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get(':id/is-favorite')
+  checkIsFavorite(@Param('id') id: string, @Req() req: any) {
+    return this.moviesService.checkIsFavorite(req.user.userId, id);
   }
   @UseGuards(OptionalJwtAuthGuard)
   @Get(':id/play')

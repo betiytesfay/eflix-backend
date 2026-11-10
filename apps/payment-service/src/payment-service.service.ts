@@ -109,6 +109,52 @@ export class PaymentServiceService {
       throw new BadRequestException('Failed to initialize payment with Chapa');
     }
   }
+  async getMyTransactions(userId: string, page = 1, limit = 10) {
+    const skip = (page - 1) * limit;
+    const [transactions, totalItems] = await Promise.all([
+      this.transactionModel
+        .find({ userId })
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .exec(),
+      this.transactionModel.countDocuments({ userId }),
+    ]);
+    return {
+      data: transactions,
+      meta: {
+        totalItems,
+        page,
+        limit,
+        totalPages: Math.ceil(totalItems / limit) || 1,
+      },
+    };
+  }
+  async getAllTransactions(page = 1, limit = 10, status?: string) {
+    const skip = (page - 1) * limit;
+    const filter: Record<string, any> = {};
+    if (status) {
+      filter.status = status;
+    }
+    const [transactions, totalItems] = await Promise.all([
+      this.transactionModel
+        .find(filter)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .exec(),
+      this.transactionModel.countDocuments(filter),
+    ]);
+    return {
+      data: transactions,
+      meta: {
+        totalItems,
+        page,
+        limit,
+        totalPages: Math.ceil(totalItems / limit) || 1,
+      },
+    };
+  }
 
   async handleWebhook(data: any) {
     const txRef = data.tx_ref || data.trx_ref;

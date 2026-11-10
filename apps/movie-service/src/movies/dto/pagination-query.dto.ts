@@ -1,5 +1,14 @@
-import { IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
-import { Type } from 'class-transformer';
+import {
+  IsBoolean,
+  IsEnum,
+  IsInt,
+  IsOptional,
+  IsString,
+  Max,
+  Min,
+} from 'class-validator';
+import { Transform, Type } from 'class-transformer';
+import { MovieAccessType } from '../schemas/movie.schema';
 
 export class PaginationQueryDto {
   @IsOptional()
@@ -22,4 +31,18 @@ export class PaginationQueryDto {
   @IsOptional()
   @IsString()
   search?: string;
+
+  @IsOptional()
+  @Transform(({ value }) => value === 'true' || value === true)
+  @IsBoolean()
+  isFeatured?: boolean;
+
+  @IsOptional()
+  @Transform(({ value }) => value === 'true' || value === true)
+  @IsBoolean()
+  isTrending?: boolean;
+
+  @IsOptional()
+  @IsEnum(MovieAccessType)
+  accessType?: MovieAccessType;
 }

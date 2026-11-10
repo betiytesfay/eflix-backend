@@ -81,6 +81,12 @@ export class SubscriptionServiceController {
       dto,
     );
   }
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  @Roles(UserRole.Admin)
+  @Post('admin/expire-overdue')
+  expireOverdueSubscriptions() {
+    return this.subscriptionServiceService.expireOverdueSubscriptions();
+  }
   @UseGuards(JwtAuthGuard)
   @Post('cancel')
   cancelSubscription(@Request() req: any) {

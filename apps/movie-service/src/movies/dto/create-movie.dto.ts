@@ -1,24 +1,67 @@
-import { IsInt, IsNotEmpty , IsOptional, IsPositive, IsString, IsUrl, Min,} from 'class-validator';
-export class CreateMovieDto{
-    @IsString()
-    @IsNotEmpty()
-    title: string;
+import {
+  IsBoolean,
+  IsEnum,
+  IsInt,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsPositive,
+  IsString,
+  Min,
+} from 'class-validator';
+import { MovieAccessType } from '../schemas/movie.schema';
 
-    @IsOptional()
-    @IsString()
-    description?: string;
+export class CreateMovieDto {
+  @IsString()
+  @IsNotEmpty()
+  title: string;
 
-    @IsInt()
-    @Min(1888)
-    releaseYear: number;
+  @IsOptional()
+  @IsString()
+  description?: string;
 
-    @IsInt()
-    @IsPositive()
-    duration: number;
+  @IsInt()
+  @Min(1888)
+  releaseYear: number;
 
-    @IsOptional()
-    @IsString()
-    videoUrl?: string;
+  @IsOptional()
+  @IsString()
+  genre?: string;
 
+  @IsInt()
+  @IsPositive()
+  duration: number;
 
+  @IsOptional()
+  @IsString()
+  videoUrl?: string;
+
+  @IsOptional()
+  @IsString()
+  thumbnailUrl?: string;
+
+  @IsOptional()
+  @IsString()
+  posterUrl?: string;
+
+  @IsOptional()
+  @IsString()
+  bannerUrl?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  isFeatured?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  isTrending?: boolean;
+
+  @IsOptional()
+  @IsEnum(MovieAccessType)
+  accessType?: MovieAccessType;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  ppvPrice?: number;
 }
