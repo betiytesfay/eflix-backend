@@ -115,6 +115,20 @@ services:
       - /usr/src/app/node_modules
     depends_on:
       - rabbitmq
+  api-gateway:
+    image: nginx:alpine
+    container_name: eflix-gateway-dev
+    restart: unless-stopped
+    ports:
+      - '5000:5000'
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - user-service
+      - movie-service
+      - subscription-service
+      - payment-service
+      - notification-service
 
 volumes:
   mongo-dev-data:
