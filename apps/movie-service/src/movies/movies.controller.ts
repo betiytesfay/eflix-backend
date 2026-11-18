@@ -72,8 +72,7 @@ export class MovieController {
     @Ip() ip: string,
     @Headers('x-device-id') deviceId?: string,
   ) {
-    const userId = req.user?.userId;
-    return this.moviesService.streamMovie(id, userId, ip, deviceId);
+    return this.moviesService.streamMovie(id, req.user, ip, deviceId);
   }
   @Get(':id')
   findOne(@Param('id') id: string) {

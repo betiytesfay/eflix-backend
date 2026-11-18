@@ -4,12 +4,13 @@ import {
   Injectable,
   NotFoundException,
   OnModuleInit,
+  Logger,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { ClientGrpc, ClientProxy } from '@nestjs/microservices';
 import { Movie } from './schemas/movie.schema';
-import { firstValueFrom, Observable } from 'rxjs';
+import { firstValueFrom, Observable, timeout } from 'rxjs';
 import { CreateMovieDto } from './dto/create-movie.dto';
 import { UpdateMovieDto } from './dto/update-movie.dto';
 import { PaginationQueryDto } from './dto/pagination-query.dto';
@@ -35,6 +36,7 @@ interface SubscriptionRpcService {
 @Injectable()
 export class MoviesService implements OnModuleInit {
   private subscriptionRpcService: SubscriptionRpcService;
+  private readonly logger = new Logger(MoviesService.name);
   constructor(
     @InjectModel(Movie.name)
     private movieModel: Model<Movie>,
@@ -80,7 +82,7 @@ export class MoviesService implements OnModuleInit {
       return { isFavorite: false, message: 'Removed from favorites' };
     }
 
-    await this.favoriteModel.create({ userId, movie: movieId });
+    await this.favoriteModel.create({ userId, movie: movieId as any });
     return { isFavorite: true, message: 'Added to favorites' };
   }
 
@@ -243,26 +245,67 @@ export class MoviesService implements OnModuleInit {
   }
   async streamMovie(
     movieId: string,
-    userId?: string,
+    user?: {
+      userId: string;
+      hasSubscription?: boolean;
+      subscriptionExpiresAt?: string;
+    },
     ipAddress = '',
     guestDeviceId = '',
   ) {
     const movie = await this.findOne(movieId);
-    const accessCheck = await firstValueFrom(
-      this.subscriptionRpcService.checkAccess({
-        userId: userId || '',
-        movieId,
-        ipAddress,
-        guestDeviceId,
-      }),
-    );
+
+    if (
+      user?.hasSubscription &&
+      user.subscriptionExpiresAt &&
+      new Date(user.subscriptionExpiresAt) > new Date()
+    ) {
+      return {
+        message: 'Access granted . Enjoy your movie!',
+        planType: 'SUBSCRIPTION_VIP',
+        remainingFree: 0,
+        movie: {
+          id: movie._id,
+          title: movie.title,
+          genre: movie.genre,
+          streamUrl: this.formatEmbedUrl(movie.videoUrl),
+        },
+      };
+    }
+
+    let accessCheck = {
+      hasAccess: false,
+      message: '',
+      planType: 'NONE',
+      remainingFree: 0,
+    };
+
+    try {
+      accessCheck = await firstValueFrom(
+        this.subscriptionRpcService
+          .checkAccess({
+            userId: user?.userId || '',
+            movieId,
+            ipAddress,
+            guestDeviceId,
+          })
+          .pipe(timeout(1500)),
+      );
+    } catch (error) {
+      if (user?.userId) {
+        this.logger.warn(`Subscription check timed out. Failing open for user ${user.userId}`);
+        accessCheck = { hasAccess: true, message: 'FAIL_OPEN', planType: 'FALLBACK', remainingFree: 0 };
+      }
+    }
+
     if (!accessCheck.hasAccess) {
       throw new ForbiddenException(
         accessCheck.message === 'GUEST_LIMIT_REACHED'
-          ? ' You have reached your limit of 10 free movies this month. Please create an account or subscribe!'
+          ? 'You have reached your limit of 10 free movies this month. Please create an account or subscribe!'
           : 'Active subscription required to watch this movie',
       );
     }
+
     return {
       message: 'Access granted. Enjoy your movie!',
       planType: accessCheck.planType,

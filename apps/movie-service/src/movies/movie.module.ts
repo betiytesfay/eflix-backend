@@ -31,8 +31,8 @@ import {
         options: {
           package: 'subscription',
           protoPath: join(
-            __dirname,
-            '../../../../libs/common/src/proto/subscription.proto',
+            process.cwd(),
+            'libs/common/src/proto/subscription.proto',
           ),
           url: process.env.SUBSCRIPTION_GRPC_URL || 'localhost:50051',
         },

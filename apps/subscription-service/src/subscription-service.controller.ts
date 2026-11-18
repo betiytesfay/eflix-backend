@@ -70,7 +70,7 @@ export class SubscriptionServiceController {
   }
   @EventPattern('payment.success')
   async handlePaymentSuccess(@Payload() data: any) {
-    await this.subscriptionServiceService.activateFromPayment(data);
+    await this.subscriptionServiceService.activateFromPaymentWithRetry(data);
   }
 
   @UseGuards(JwtAuthGuard)

@@ -1,44 +1,16 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  Patch,
-  Query,
-  UseGuards,
-} from '@nestjs/common';
-import { JwtAuthGuard, RoleGuard, Roles, UserRole } from '@app/common';
+import { Module } from '@nestjs/common';
+import { MongooseModule } from '@nestjs/mongoose';
+import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
-import { UpdateUserRoleDto } from './dto/update-user-role.dto';
+import { User, UserSchema } from './schemas/user.schema';
 
-@Controller('users')
-@UseGuards(JwtAuthGuard, RoleGuard)
-@Roles(UserRole.Admin)
-export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+@Module({
+  imports: [
+    MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
+  ],
+  controllers: [UsersController],
+  providers: [UsersService],
+  exports: [UsersService],
+})
+export class UsersModule {}
 
-  @Get()
-  findAll(
-    @Query('page') page = 1,
-    @Query('limit') limit = 10,
-    @Query('search') search?: string,
-  ) {
-    return this.usersService.findAll(Number(page), Number(limit), search);
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.usersService.findOne(id);
-  }
-
-  @Patch(':id/role')
-  updateRole(@Param('id') id: string, @Body() dto: UpdateUserRoleDto) {
-    return this.usersService.updateRole(id, dto.role);
-  }
-
-  @Delete(':id')
-  deleteUser(@Param('id') id: string) {
-    return this.usersService.deleteUser(id);
-  }
-}

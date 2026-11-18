@@ -138,6 +138,24 @@ export class SubscriptionServiceService {
     );
   }
 
+  async activateFromPaymentWithRetry(
+    data: { userId: string; planId: string; movieId?: string },
+    maxRetries = 3,
+  ) {
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        await this.activateFromPayment(data);
+        return;
+      } catch (error) {
+        this.logger.warn(`Activation attempt ${attempt} failed: ${error.message}`);
+        if (attempt === maxRetries) {
+          throw error;
+        }
+        await new Promise((resolve) => setTimeout(resolve, Math.pow(2, attempt) * 1000));
+      }
+    }
+  }
+
   async createSubscription(userId: string, dto: CreateSubscriptionDto) {
     const plan = await this.planModel.findOne({
       type: dto.plan,

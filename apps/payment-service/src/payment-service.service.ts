@@ -30,6 +30,9 @@ export class PaymentServiceService {
 
     @Inject('SUBSCRIPTION_SERVICE')
     private readonly subscriptionClient: ClientProxy,
+
+    @Inject('USER_SERVICE')
+    private readonly userClient: ClientProxy,
   ) {}
 
   async checkout(userId: string, dto: CheckoutDto) {
@@ -188,6 +191,7 @@ export class PaymentServiceService {
 
     this.subscriptionClient.emit('payment.success', payload);
     this.notificationClient.emit('payment.success', payload);
+    this.userClient.emit('payment.success', payload);
 
     return { message: 'Webhook processed, subscription activated' };
   }

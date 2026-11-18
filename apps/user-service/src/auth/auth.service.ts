@@ -43,10 +43,7 @@ export class AuthService {
       email: user.email,
       username: user.username,
     });
-    const token = this.jwtService.sign({
-      userId: user._id.toString(),
-      role: user.role,
-    });
+    const token = this.generateToken(user);
 
     return {
       message: 'User registered successfully',
@@ -181,10 +178,7 @@ export class AuthService {
     if (!(await user.comparePassword(dto.password))) {
       throw new UnauthorizedException(`Incorrect password for this ${label}`);
     }
-    const token = this.jwtService.sign({
-      userId: user._id.toString(),
-      role: user.role,
-    });
+    const token = this.generateToken(user);
 
     return {
       message: 'Login successful',
@@ -200,19 +194,53 @@ export class AuthService {
       throw new NotFoundException('User not found.');
     }
 
+    const token = this.generateToken(user);
+
     return {
       message: 'User profile fetched successfully',
+      token,
       user: {
         id: user._id,
         phoneNumber: user.phoneNumber,
         username: user.username,
         email: user.email,
         telegramAccount: user.telegramAccount,
+        hasActiveSubscription: user.hasActiveSubscription,
+        subscriptionExpiresAt: user.subscriptionExpiresAt,
         role: user.role,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
       },
     };
+  }
+
+  private generateToken(user: User): string {
+    const isSubscribed =
+      user.hasActiveSubscription &&
+      user.subscriptionExpiresAt &&
+      new Date(user.subscriptionExpiresAt) > new Date();
+
+    return this.jwtService.sign({
+      userId: user._id.toString(),
+      role: user.role,
+      hasSubscription: !!isSubscribed,
+      subscriptionExpiresAt: user.subscriptionExpiresAt || null,
+    });
+  }
+  async handlePaymentSuccess(data: {
+    userId: string;
+    planDurationDays?: number;
+  }) {
+    const days = data.planDurationDays || 30;
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + days);
+
+    await this.userModel.findByIdAndUpdate(data.userId, {
+      $set: {
+        hasActiveSubscription: true,
+        subscriptionExpiresAt: expiresAt,
+      },
+    });
   }
 
   private sanitize(user: User) {

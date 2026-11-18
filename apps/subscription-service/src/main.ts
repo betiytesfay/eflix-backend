@@ -13,8 +13,8 @@ async function bootstrap() {
     options: {
       package: 'subscription',
       protoPath: join(
-        __dirname,
-        '../../../../libs/common/src/proto/subscription.proto',
+        process.cwd(),
+        'libs/common/src/proto/subscription.proto',
       ),
       url: '0.0.0.0:50051',
     },
@@ -25,7 +25,13 @@ async function bootstrap() {
       urls: [process.env.RABBITMQ_URL || 'amqp://localhost:5672'],
       queue:
         process.env.RABBITMQ_SUBSCRIPTION_QUEUE || 'subscription_service_queue',
-      queueOptions: { durable: true },
+      queueOptions: {
+        durable: true,
+        arguments: {
+          'x-dead-letter-exchange': '',
+          'x-dead-letter-routing-key': 'subscription_service_dlq',
+        },
+      },
     },
   });
   app.useGlobalPipes(new ValidationPipe({ whitelist: true }));

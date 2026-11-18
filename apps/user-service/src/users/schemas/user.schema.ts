@@ -28,6 +28,12 @@ export class User extends Document {
   @Prop({ type: Date, default: null })
   resetTokenExpiry?: Date;
 
+  @Prop({ default: false })
+  hasActiveSubscription: boolean;
+
+  @Prop({ type: Date, default: null })
+  subscriptionExpiresAt?: Date;
+
   @Prop({ type: String, enum: Object.values(UserRole), default: UserRole.User })
   role: UserRole;
 

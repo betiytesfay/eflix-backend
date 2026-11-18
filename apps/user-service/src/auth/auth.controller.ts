@@ -13,11 +13,15 @@ import { LoginDto } from './dto/login.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { JwtAuthGuard } from '@app/common';
+import { EventPattern, Payload } from '@nestjs/microservices';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
-
+  @EventPattern('payment.success')
+  async handlePaymentSuccess(@Payload() data: any) {
+    await this.authService.handlePaymentSuccess(data);
+  }
   @Post('register')
   register(@Body() dto: RegisterDto) {
     return this.authService.register(dto);

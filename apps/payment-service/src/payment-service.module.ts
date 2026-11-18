@@ -31,6 +31,7 @@ import {
     ]),
     RmqModule.register({ name: 'NOTIFICATION_SERVICE' }),
     RmqModule.register({ name: 'SUBSCRIPTION_SERVICE' }),
+    RmqModule.register({ name: 'USER_SERVICE' }),
   ],
   controllers: [PaymentServiceController],
   providers: [PaymentServiceService, JwtStrategy],

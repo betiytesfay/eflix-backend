@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document, Schema as MongooseSchema } from 'mongoose';
+import { Document, Schema as MongooseSchema, Types } from 'mongoose';
 import { Movie } from './movie.schema';
 
 @Schema({ timestamps: true })
@@ -12,7 +12,7 @@ export class Favorite extends Document {
     ref: Movie.name,
     required: true,
   })
-  movie: Movie;
+  movie: Types.ObjectId | Movie | string;
 }
 
 export const FavoriteSchema = SchemaFactory.createForClass(Favorite);
